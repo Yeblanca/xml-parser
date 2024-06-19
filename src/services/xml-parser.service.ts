@@ -22,6 +22,27 @@ const limiter = new Bottleneck({
   minTime: 333
 });
 
+limiter.on('failed', async (error, jobInfo) => {
+  const id = jobInfo.options.id;
+  console.warn(`Job ${id} failed: ${error}`);
+  if (jobInfo.retryCount < 3) {
+    // Retry 3 more times
+    const delay = 10 * 60 * 1000; // 10 minutes in milliseconds
+    console.log(`Retrying job ${id} in ${delay}ms!`);
+    return delay;
+  }
+});
+
+const fetchVehicleTypesForMakeIdWithRetry = async (makeId: string, makeName: string) => {
+  return limiter.schedule(() => fetchVehicleTypesForMakeId(makeId, makeName));
+};
+
+const processBatchWithRetry = async (batch: { makeId: string; makeName: string }[]) => {
+  const results = await Promise.all(batch.map((make) => fetchVehicleTypesForMakeIdWithRetry(make.makeId, make.makeName)));
+  await saveDataToMongoDB(results);
+  console.log('Batch processed and saved:', results);
+};
+
 // Fetch vehicle types for a specific make ID
 const fetchVehicleTypesForMakeId = async (makeId: string, makeName: string) => {
   try {
@@ -31,6 +52,14 @@ const fetchVehicleTypesForMakeId = async (makeId: string, makeName: string) => {
     }
     const xml = await response.text();
     const data = await parseStringPromise(xml);
+
+    if (data.Response.Results[0].VehicleTypesForMakeIds === undefined) {
+      return {
+        makeId,
+        makeName,
+        vehicleTypes: []
+      };
+    }
 
     const vehicleTypes = data.Response.Results[0].VehicleTypesForMakeIds.map((result: { VehicleTypeId: string[]; VehicleTypeName: string[] }) => ({
       typeId: result.VehicleTypeId[0],
@@ -52,18 +81,10 @@ const fetchVehicleTypesForMakeId = async (makeId: string, makeName: string) => {
   }
 };
 
-// Process a batch of makes
-const processBatch = async (batch: { makeId: string; makeName: string }[]) => {
-  const results = await Promise.all(batch.map((make) => limiter.schedule(() => fetchVehicleTypesForMakeId(make.makeId, make.makeName))));
-
-  await saveDataToMongoDB(results);
-  console.log('Batch processed and saved:', results);
-};
-
 // Process all batches of makes
 const processBatches = async (batches: { makeId: string; makeName: string }[][]) => {
   for (const batch of batches) {
-    await processBatch(batch);
+    await processBatchWithRetry(batch);
   }
   console.log('All batches processed and saved!');
 };
