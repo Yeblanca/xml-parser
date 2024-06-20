@@ -44,7 +44,7 @@ const processBatchWithRetry = async (batch: { makeId: string; makeName: string }
 };
 
 // Fetch vehicle types for a specific make ID
-const fetchVehicleTypesForMakeId = async (makeId: string, makeName: string) => {
+export const fetchVehicleTypesForMakeId = async (makeId: string, makeName: string) => {
   try {
     const response = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/GetVehicleTypesForMakeId/${makeId}?format=xml`);
     if (!response.ok) {
