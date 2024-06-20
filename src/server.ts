@@ -7,8 +7,6 @@ import { fetchAndProcessMakes } from './services/xml-parser.service';
 const prisma = new PrismaClient();
 let dataInitialized = true; // Flag to track if data has been initialized, more elegant options can be implemented.
 
-console.log('Database URL:', process.env.DATABASE_URL);
-
 // Construct a schema, using GraphQL schema language
 const schema = buildSchema(`
   type MakeVehicleTypes {
@@ -44,7 +42,6 @@ const root = {
     });
   },
   async vehicleTypesByMake({ makeId }: { makeId: string }) {
-    console.log(makeId);
     const results = await prisma.make.findMany({
       where: {
         makeId: makeId
