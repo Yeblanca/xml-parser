@@ -5,7 +5,12 @@ import { PrismaClient } from '@prisma/client';
 import { fetchAndProcessMakes } from './services/xml-parser.service';
 
 const prisma = new PrismaClient();
-let dataInitialized = true; // Flag to track if data has been initialized, more elegant options can be implemented.
+let dataInitialized = false; // Flag to track if data has been initialized, more elegant options can be implemented.
+
+const initialDataCheck = async () => {
+  const makeCount = await prisma.make.count();
+  return makeCount === 0;
+};
 
 // Construct a schema, using GraphQL schema language
 const schema = buildSchema(`
@@ -67,7 +72,8 @@ app.all(
 
 // Start the server at port
 app.listen(4000, async () => {
-  if (!dataInitialized) {
+  const needsDataInitialization = await initialDataCheck();
+  if (needsDataInitialization) {
     await fetchAndProcessMakes();
     dataInitialized = true;
   }
