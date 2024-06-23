@@ -9,7 +9,9 @@ export const fetchMakes = async (): Promise<Make[]> => {
     const response = await fetch('https://vpic.nhtsa.dot.gov/api/vehicles/getallmakes?format=XML');
     const xml = await response.text();
     const result = await parseStringPromise(xml);
-    return result.Response.Results[0].AllVehicleMakes;
+    // Return first 100 vehicles
+    return result.Response.Results[0].AllVehicleMakes.slice(0, 100);
+    // return result.Response.Results[0].AllVehicleMakes;
   } catch (error) {
     console.error('Error fetching makes', error);
     return [];

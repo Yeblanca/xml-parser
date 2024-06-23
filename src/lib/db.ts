@@ -1,6 +1,5 @@
+import { prisma } from './client';
 import { MakeWithVehicleTypes } from './types';
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
 
 export const saveDataToMongoDB = async (data: MakeWithVehicleTypes[]) => {
   try {

@@ -8,22 +8,14 @@ Back-end challenge for Outcoders by Juan Pablo Lozano Escareño
 
 Create a `.env` file in the root directory of the project. Use the `.env.example` file as a reference for the necessary environment variables.
 
-### Step 2: Build the docker image
+### Step 2: Build the docker image and run the container.
 
 ```bash
-docker build -t xml-parser .
+docker-compose up --build
 ```
 
-### Step 3: Run the Docker container
+Data can be fetched using Postman on `localhost:4000/graphql`
 
-```bash
-docker run -d -p 4000:4000 --env-file .env --name xml-parser-container xml-parser
-```
-
-### Step 4: Utilize the Connection String
-
-For ease of use, please utilize the connection string provided via email.
-
-##
+For a quick demo, uncomment line 13 in `src/services/xml-parser.service.ts` as it will return only the first 100 fetched vehicles, Otherwise the process will run for the 11,000+ vehicles.
 
 Please, feel free to reach out if you encounter any issues or have questions regarding the setup process.
